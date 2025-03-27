@@ -167,7 +167,8 @@
                 .gte('created_at', startOfDay)
                 .lte('created_at', endOfDay)
                 .order('deporte', { ascending: true })
-                .order('created_at', { ascending: true });
+                .order('apellido', { ascending: true })
+                .order('nombre', { ascending: true });
 
             if (error) {
                 console.error('Error al recuperar datos:', error);
