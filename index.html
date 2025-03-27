@@ -197,6 +197,12 @@
             calculateSportSummary(currentData);
         }
 
+        // Función para eliminar emojis de una cadena
+        function removeEmojis(text) {
+            // Esta expresión regular elimina emojis básicos
+            return text.replace(/[\p{Emoji_Presentation}|\p{Emoji}\u200D]+/gu, '').trim();
+        }
+
         // Función para exportar a CSV
         function exportToCSV(data, filename) {
             if (!data.length) {
@@ -209,7 +215,7 @@
                 record.nombre,
                 record.apellido,
                 record.rut || 'Sin RUT',
-                record.deporte,
+                removeEmojis(record.deporte), // Eliminar emojis solo al exportar
                 new Date(record.created_at).toLocaleString()
             ]);
 
