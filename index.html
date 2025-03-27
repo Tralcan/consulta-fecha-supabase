@@ -49,6 +49,23 @@
             font-size: 1rem;
         }
 
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: #2d6a4f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background: #1a3c34;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -74,6 +91,7 @@
             <label for="dateSelector">Selecciona una fecha:</label>
             <input type="date" id="dateSelector">
         </div>
+        <button id="exportBtn">Exportar</button>
         <table id="resultsTable">
             <thead>
                 <tr>
@@ -98,10 +116,11 @@
         // Elementos del DOM
         const dateSelector = document.getElementById('dateSelector');
         const resultsBody = document.getElementById('resultsBody');
+        const exportBtn = document.getElementById('exportBtn');
+        let currentData = []; // Para almacenar los datos actuales
 
         // Función para cargar registros según la fecha seleccionada
         async function fetchRecordsByDate(date) {
-            // Convertir la fecha a formato ISO para coincidir con created_at
             const startOfDay = `${date}T00:00:00Z`;
             const endOfDay = `${date}T23:59:59Z`;
 
@@ -109,19 +128,24 @@
                 .from('formulario')
                 .select('*')
                 .gte('created_at', startOfDay)
-                .lte('created_at', endOfDay);
+                .lte('created_at', endOfDay)
+                .order('deporte', { ascending: true })  // Primero ordenar por deporte
+                .order('created_at', { ascending: true }); // Luego por fecha
 
             if (error) {
                 console.error('Error al recuperar datos:', error);
                 return;
             }
 
+            // Almacenar datos para exportar
+            currentData = data || [];
+
             // Limpiar la tabla
             resultsBody.innerHTML = '';
 
             // Mostrar los resultados en la tabla
-            if (data && data.length > 0) {
-                data.forEach(record => {
+            if (currentData.length > 0) {
+                currentData.forEach(record => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.nombre}</td>
@@ -136,12 +160,53 @@
             }
         }
 
+        // Función para exportar a CSV
+        function exportToCSV(data, filename) {
+            if (!data.length) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const headers = ['Nombre', 'Apellido', 'Deporte', 'Fecha'];
+            const rows = data.map(record => [
+                record.nombre,
+                record.apellido,
+                record.deporte,
+                new Date(record.created_at).toLocaleString()
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         // Escuchar cambios en el selector de fechas
         dateSelector.addEventListener('change', (e) => {
-            const selectedDate = e.target.value; // Formato: YYYY-MM-DD
+            const selectedDate = e.target.value;
             if (selectedDate) {
                 fetchRecordsByDate(selectedDate);
             }
+        });
+
+        // Evento para el botón de exportar
+        exportBtn.addEventListener('click', () => {
+            const selectedDate = dateSelector.value;
+            if (!selectedDate) {
+                alert('Por favor, selecciona una fecha primero');
+                return;
+            }
+            const filename = `registros_${selectedDate}.csv`;
+            exportToCSV(currentData, filename);
         });
 
         // Cargar registros del día actual al iniciar
