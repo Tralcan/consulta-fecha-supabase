@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Registros por Fecha</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a3c34, #2d6a4f);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d6a4f;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #1a3c34;
+            font-weight: bold;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #2d6a4f;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #2d6a4f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consulta por Fecha</h1>
+        <div class="form-group">
+            <label for="dateSelector">Selecciona una fecha:</label>
+            <input type="date" id="dateSelector">
+        </div>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Deporte</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Inicializa Supabase
+        const supabase = window.supabase.createClient(
+            'TU_URL_SUPABASE', // Reemplaza con tu URL de Supabase
+            'TU_API_KEY'      // Reemplaza con tu API Key (anon key)
+        );
+
+        // Elementos del DOM
+        const dateSelector = document.getElementById('dateSelector');
+        const resultsBody = document.getElementById('resultsBody');
+
+        // Función para cargar registros según la fecha seleccionada
+        async function fetchRecordsByDate(date) {
+            // Convertir la fecha a formato ISO para coincidir con created_at
+            const startOfDay = `${date}T00:00:00Z`;
+            const endOfDay = `${date}T23:59:59Z`;
+
+            const { data, error } = await supabase
+                .from('formulario')
+                .select('*')
+                .gte('created_at', startOfDay)
+                .lte('created_at', endOfDay);
+
+            if (error) {
+                console.error('Error al recuperar datos:', error);
+                return;
+            }
+
+            // Limpiar la tabla
+            resultsBody.innerHTML = '';
+
+            // Mostrar los resultados en la tabla
+            if (data && data.length > 0) {
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.nombre}</td>
+                        <td>${record.apellido}</td>
+                        <td>${record.deporte}</td>
+                        <td>${new Date(record.created_at).toLocaleString()}</td>
+                    `;
+                    resultsBody.appendChild(row);
+                });
+            } else {
+                resultsBody.innerHTML = '<tr><td colspan="4">No hay registros para esta fecha</td></tr>';
+            }
+        }
+
+        // Escuchar cambios en el selector de fechas
+        dateSelector.addEventListener('change', (e) => {
+            const selectedDate = e.target.value; // Formato: YYYY-MM-DD
+            if (selectedDate) {
+                fetchRecordsByDate(selectedDate);
+            }
+        });
+
+        // Cargar registros del día actual al iniciar
+        const today = new Date().toISOString().split('T')[0];
+        dateSelector.value = today;
+        fetchRecordsByDate(today);
+    </script>
+</body>
+</html>
