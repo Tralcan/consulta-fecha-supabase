@@ -88,6 +88,13 @@
             background: #2d6a4f;
             color: white;
         }
+
+        #sportSummary {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -110,6 +117,7 @@
             </thead>
             <tbody id="resultsBody"></tbody>
         </table>
+        <div id="sportSummary"></div>
         <button id="exportBtn">Exportar</button>
     </div>
 
@@ -124,8 +132,29 @@
         // Elementos del DOM
         const dateSelector = document.getElementById('dateSelector');
         const resultsBody = document.getElementById('resultsBody');
+        const sportSummary = document.getElementById('sportSummary');
         const exportBtn = document.getElementById('exportBtn');
         let currentData = [];
+
+        // Función para calcular el recuento por deporte
+        function calculateSportSummary(data) {
+            if (!data || data.length === 0) {
+                sportSummary.innerHTML = '<p>No hay registros para mostrar el resumen</p>';
+                return;
+            }
+
+            const sportCount = {};
+            data.forEach(record => {
+                sportCount[record.deporte] = (sportCount[record.deporte] || 0) + 1;
+            });
+
+            let summaryHTML = '<h4>Resumen por Deporte:</h4><ul>';
+            for (const [sport, count] of Object.entries(sportCount)) {
+                summaryHTML += `<li>${sport}: ${count} registro${count > 1 ? 's' : ''}</li>`;
+            }
+            summaryHTML += '</ul>';
+            sportSummary.innerHTML = summaryHTML;
+        }
 
         // Función para cargar registros según la fecha seleccionada
         async function fetchRecordsByDate(date) {
@@ -163,6 +192,9 @@
             } else {
                 resultsBody.innerHTML = '<tr><td colspan="5">No hay registros para esta fecha</td></tr>';
             }
+
+            // Calcular y mostrar el resumen por deporte
+            calculateSportSummary(currentData);
         }
 
         // Función para exportar a CSV
