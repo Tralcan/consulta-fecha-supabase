@@ -199,11 +199,10 @@
 
         // Función para eliminar emojis de una cadena
         function removeEmojis(text) {
-            // Esta expresión regular elimina emojis básicos
             return text.replace(/[\p{Emoji_Presentation}|\p{Emoji}\u200D]+/gu, '').trim();
         }
 
-        // Función para exportar a CSV
+        // Función para exportar a CSV con separador ';'
         function exportToCSV(data, filename) {
             if (!data.length) {
                 alert('No hay datos para exportar');
@@ -212,16 +211,16 @@
 
             const headers = ['Nombre', 'Apellido', 'RUT', 'Deporte', 'Fecha'];
             const rows = data.map(record => [
-                record.nombre,
-                record.apellido,
-                record.rut || 'Sin RUT',
-                removeEmojis(record.deporte), // Eliminar emojis solo al exportar
-                new Date(record.created_at).toLocaleString()
+                `"${record.nombre}"`, // Entrecomillar para mayor compatibilidad
+                `"${record.apellido}"`,
+                `"${record.rut || 'Sin RUT'}"`,
+                `"${removeEmojis(record.deporte)}"`,
+                `"${new Date(record.created_at).toLocaleString()}"`
             ]);
 
             const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
+                headers.join(';'), // Cambiar separador a ';'
+                ...rows.map(row => row.join(';')) // Cambiar separador a ';'
             ].join('\n');
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
