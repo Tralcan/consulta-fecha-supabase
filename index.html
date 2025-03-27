@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Dragon -- Registros por Fecha</title>
     <style>
-       body {
+        body {
             font-family: 'Arial', sans-serif;
             background: url('https://images.unsplash.com/flagged/photo-1556554946-c10ef755bded?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed;
             background-size: cover;
@@ -103,6 +103,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Apellido</th>
+                    <th>RUT</th>
                     <th>Deporte</th>
                     <th>Fecha</th>
                 </tr>
@@ -116,15 +117,15 @@
     <script>
         // Inicializa Supabase
         const supabase = window.supabase.createClient(
-            'https://qqvkbwnyhjevrdyhvxbv.supabase.co', // Reemplaza con tu URL de Supabase
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdmtid255aGpldnJkeWh2eGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwOTIxMTgsImV4cCI6MjA1ODY2ODExOH0.3ACxuOf_NWjzz0yYjxVPstVrG08pb1ulG-BNEofW6Yc'      // Reemplaza con tu API Key (anon key)
+            'https://qqvkbwnyhjevrdyhvxbv.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdmtid255aGpldnJkeWh2eGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwOTIxMTgsImV4cCI6MjA1ODY2ODExOH0.3ACxuOf_NWjzz0yYjxVPstVrG08pb1ulG-BNEofW6Yc'
         );
 
         // Elementos del DOM
         const dateSelector = document.getElementById('dateSelector');
         const resultsBody = document.getElementById('resultsBody');
         const exportBtn = document.getElementById('exportBtn');
-        let currentData = []; // Para almacenar los datos actuales
+        let currentData = [];
 
         // Función para cargar registros según la fecha seleccionada
         async function fetchRecordsByDate(date) {
@@ -136,34 +137,31 @@
                 .select('*')
                 .gte('created_at', startOfDay)
                 .lte('created_at', endOfDay)
-                .order('deporte', { ascending: true })  // Primero ordenar por deporte
-                .order('created_at', { ascending: true }); // Luego por fecha
+                .order('deporte', { ascending: true })
+                .order('created_at', { ascending: true });
 
             if (error) {
                 console.error('Error al recuperar datos:', error);
                 return;
             }
 
-            // Almacenar datos para exportar
             currentData = data || [];
-
-            // Limpiar la tabla
             resultsBody.innerHTML = '';
 
-            // Mostrar los resultados en la tabla
             if (currentData.length > 0) {
                 currentData.forEach(record => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.nombre}</td>
                         <td>${record.apellido}</td>
+                        <td>${record.rut || 'Sin RUT'}</td>
                         <td>${record.deporte}</td>
                         <td>${new Date(record.created_at).toLocaleString()}</td>
                     `;
                     resultsBody.appendChild(row);
                 });
             } else {
-                resultsBody.innerHTML = '<tr><td colspan="4">No hay registros para esta fecha</td></tr>';
+                resultsBody.innerHTML = '<tr><td colspan="5">No hay registros para esta fecha</td></tr>';
             }
         }
 
@@ -174,10 +172,11 @@
                 return;
             }
 
-            const headers = ['Nombre', 'Apellido', 'Deporte', 'Fecha'];
+            const headers = ['Nombre', 'Apellido', 'RUT', 'Deporte', 'Fecha'];
             const rows = data.map(record => [
                 record.nombre,
                 record.apellido,
+                record.rut || 'Sin RUT',
                 record.deporte,
                 new Date(record.created_at).toLocaleString()
             ]);
