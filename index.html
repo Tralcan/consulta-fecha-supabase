@@ -163,10 +163,10 @@
             sportSummary.innerHTML = summaryHTML;
         }
 
-        // Función para cargar registros según la fecha seleccionada
+        // Función para cargar registros según la fecha seleccionada sin Zona
         async function fetchRecordsByDate(date) {
-            const startOfDay = `${date}T00:00:00Z`;
-            const endOfDay = `${date}T23:59:59Z`;
+            const startOfDay = `${date}T00:00:00`;
+            const endOfDay = `${date}T23:59:59`;
 
             const { data, error } = await supabase
                 .from('formulario')
